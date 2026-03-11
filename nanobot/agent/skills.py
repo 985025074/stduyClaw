@@ -6,6 +6,8 @@ import re
 import shutil
 from pathlib import Path
 
+from loguru import logger
+
 # Default builtin skills directory (relative to this file)
 BUILTIN_SKILLS_DIR = Path(__file__).parent.parent / "skills"
 
@@ -53,7 +55,19 @@ class SkillsLoader:
 
         # Filter by requirements
         if filter_unavailable:
-            return [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
+            filtered = [s for s in skills if self._check_requirements(self._get_skill_meta(s["name"]))]
+            logger.debug(
+                "SkillsLoader.list_skills(filter_unavailable={}): {}",
+                filter_unavailable,
+                [f"{item['name']} ({item['source']})" for item in filtered],
+            )
+            return filtered
+
+        logger.debug(
+            "SkillsLoader.list_skills(filter_unavailable={}): {}",
+            filter_unavailable,
+            [f"{item['name']} ({item['source']})" for item in skills],
+        )
         return skills
 
     def load_skill(self, name: str) -> str | None:
@@ -69,14 +83,17 @@ class SkillsLoader:
         # Check workspace first
         workspace_skill = self.workspace_skills / name / "SKILL.md"
         if workspace_skill.exists():
+            logger.debug("SkillsLoader.load_skill: loading workspace skill '{}' from {}", name, workspace_skill)
             return workspace_skill.read_text(encoding="utf-8")
 
         # Check built-in
         if self.builtin_skills:
             builtin_skill = self.builtin_skills / name / "SKILL.md"
             if builtin_skill.exists():
+                logger.debug("SkillsLoader.load_skill: loading builtin skill '{}' from {}", name, builtin_skill)
                 return builtin_skill.read_text(encoding="utf-8")
 
+        logger.debug("SkillsLoader.load_skill: skill '{}' not found", name)
         return None
 
     def load_skills_for_context(self, skill_names: list[str]) -> str:
@@ -96,6 +113,12 @@ class SkillsLoader:
                 content = self._strip_frontmatter(content)
                 parts.append(f"### Skill: {name}\n\n{content}")
 
+        logger.debug(
+            "SkillsLoader.load_skills_for_context: requested={}, loaded={}",
+            skill_names,
+            len(parts),
+        )
+
         return "\n\n---\n\n".join(parts) if parts else ""
 
     def build_skills_summary(self) -> str:
@@ -110,6 +133,7 @@ class SkillsLoader:
         """
         all_skills = self.list_skills(filter_unavailable=False)
         if not all_skills:
+            logger.debug("SkillsLoader.build_skills_summary: no skills found")
             return ""
 
         def escape_xml(s: str) -> str:
@@ -136,6 +160,11 @@ class SkillsLoader:
 
             lines.append("  </skill>")
         lines.append("</skills>")
+
+        logger.debug(
+            "SkillsLoader.build_skills_summary: built summary for {} skills",
+            len(all_skills),
+        )
 
         return "\n".join(lines)
 
@@ -198,6 +227,7 @@ class SkillsLoader:
             skill_meta = self._parse_nanobot_metadata(meta.get("metadata", ""))
             if skill_meta.get("always") or meta.get("always"):
                 result.append(s["name"])
+        logger.debug("SkillsLoader.get_always_skills: {}", result)
         return result
 
     def get_skill_metadata(self, name: str) -> dict | None:

@@ -1,43 +1,102 @@
 ---
 name: academic
-description: Search academic papers and combine them with open web commentary for newcomer-friendly research guidance.
+description: 面向学术研究初学者的论文检索、学习路线规划与长期跟进 skill。
 metadata: {"nanobot":{"emoji":"📚"}}
 ---
 
 # Academic Research
 
-Use this skill when the user asks for any of the following:
-- find core papers for a topic
-- explain a research area to a beginner
-- compare major papers or methods
-- track recent papers or discussions
-- combine academic sources with blogs, tutorials, or public commentary
+当用户希望系统掌握一个学科或研究方向，而不是只拿到零散资料时，使用这个 skill。
+
+适用场景：
+
+- 搜索某个方向的核心论文
+- 为新手生成入门学习路线
+- 梳理一个研究方向的知识地图
+- 对比几篇代表性论文的方法、任务和局限
+- 结合公开网页内容补充教程、博客和讨论
+- 记录用户当前学习阶段，并在后续对话中持续跟进
 
 ## Core tools
 
-- `academic_search` for papers, surveys, metadata, and canonical references
-- `web_search` for tutorials, blog posts, project pages, and public discussion pages
-- `web_fetch` for extracting readable text from public pages after you find useful URLs
+- `academic_search`
+	用于搜索 arXiv、Semantic Scholar、OpenAlex、Crossref 等学术来源，获取代表论文、综述和元数据
+- `web_search`
+	用于搜索教程、博客、项目主页、公开讨论和实践案例
+- `web_fetch`
+	用于提取具体网页正文并整理观点
 
 ## Working style
 
-1. Clarify scope when the topic is broad.
-2. Start with 5-10 representative papers, not an exhaustive dump.
-3. Prefer survey papers, foundational papers, and strong recent updates.
-4. Explain terminology in plain language for newcomers.
-5. When citing discussion or commentary, separate it from paper facts.
-6. Do not invent papers, authors, venues, or citation counts.
+1. 先澄清主题范围，再开始组织学习路线。
+2. 优先给结构化路径，而不是简单堆资源列表。
+3. 优先覆盖四类内容：教材、课程、奠基论文、前沿论文。
+4. 对新手必须解释关键术语和先修关系。
+5. 论文事实和公开讨论要分开表述。
+6. 不编造论文、作者、会议、年份或引用数。
+7. 如果用户处于长期学习过程，必须结合已有进度记录给出阶段化建议。
 
 ## Suggested workflow
 
-1. Search papers with `academic_search`.
-2. If the user needs practical context, search the web for tutorials and public discussion.
-3. Group papers by role: survey, foundational, method family, recent trend.
-4. End with a reading order and concrete next questions.
+1. 先让模型给出该领域的知识地图。
+2. 用 `academic_search` 搜索代表论文，并按角色整理：综述、经典、方法分支、最新进展。
+3. 如果用户需要实践材料，再用 `web_search` 查教程、博客、项目页和公开讨论。
+4. 用 `web_fetch` 提取高价值页面正文。
+5. 输出适合用户当前阶段的阅读顺序、关键问题和下一步建议。
+6. 每次重要对话结束后，更新用户的学习阶段和进度记录。
+
+## Progress tracking
+
+agent 应当持续记录并跟进用户的学习进度。
+
+建议使用现有记忆系统中的以下位置：
+
+- `memory/MEMORY.md`
+	记录长期稳定信息，例如：当前学习主题、当前阶段、长期目标、主要兴趣分支、正在使用的教材和课程
+- `memory/HISTORY.md`
+	记录阶段性事件，例如：完成了哪些章节、读了哪些论文、当前卡点、最近一次回顾结论
+
+每次更新时，至少记录以下内容：
+
+- 当前学习主题
+- 当前阶段
+- 已完成内容
+- 当前卡点
+- 下一步计划
+
+推荐把学习阶段粗分为：
+
+- 入门准备
+- 基础课程学习
+- 教材与习题推进
+- 代表论文阅读
+- 前沿方向跟进
+- 实践或实验深化
+
+如果系统里已有记录，回答时优先根据记录判断用户当前所处阶段，而不是每次都从零开始。
+
+## Output expectations
+
+默认输出尽量包含以下部分：
+
+- 领域知识地图
+- 推荐学习顺序
+- 核心教材与课程
+- 奠基论文与代表论文
+- 前沿方向与值得跟踪的问题
+- 实际案例与公开讨论来源
+- 如果适用，给出实践或实验建议
+- 如果用户已进入长期学习过程，补充当前阶段判断与下一步推进建议
+
+## Boundaries
+
+- 当前重点是论文检索和公开网页整合，不包含 PDF 全文解析
+- 评论与讨论优先使用公开网页，不处理登录态平台内容
+- citation graph 深度遍历和作者网络分析暂未纳入第一版
 
 ## Example prompts
 
-- "Give me a beginner roadmap for diffusion models."
-- "Find the main papers on retrieval-augmented generation and compare them."
-- "Search recent graph foundation model papers and summarize the landscape."
-- "Find arXiv papers and public discussion for mechanistic interpretability."
+- "给我一份 diffusion models 的新手入门路线。"
+- "梳理机器学习从数学基础到经典论文的学习路径。"
+- "搜索 graph foundation model 的代表性工作，并分类总结。"
+- "找 mechanistic interpretability 的核心论文，再补几篇公开教程和讨论页面。"

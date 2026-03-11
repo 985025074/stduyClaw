@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from loguru import logger
+
 from nanobot.agent.memory import MemoryStore
 from nanobot.agent.skills import SkillsLoader
 from nanobot.utils.helpers import detect_image_mime
@@ -40,16 +42,20 @@ class ContextBuilder:
         if always_skills:
             always_content = self.skills.load_skills_for_context(always_skills)
             if always_content:
+                logger.debug("ContextBuilder.build_system_prompt: injecting always skills {}", always_skills)
                 parts.append(f"# Active Skills\n\n{always_content}")
 
         skills_summary = self.skills.build_skills_summary()
         if skills_summary:
+            logger.debug("ContextBuilder.build_system_prompt: injecting skills summary")
             parts.append(f"""# Skills
 
 The following skills extend your capabilities. To use a skill, read its SKILL.md file using the read_file tool.
 Skills with available="false" need dependencies installed first - you can try installing them with apt/brew.
 
 {skills_summary}""")
+
+        logger.debug("ContextBuilder.build_system_prompt: built prompt with {} sections", len(parts))
 
         return "\n\n---\n\n".join(parts)
 
