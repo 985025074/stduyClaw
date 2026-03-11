@@ -302,6 +302,26 @@ class WebToolsConfig(Base):
     search: WebSearchConfig = Field(default_factory=WebSearchConfig)
 
 
+class AcademicSourceConfig(Base):
+    """Per-source academic search configuration."""
+
+    enabled: bool = True
+    api_key: str = ""
+    base_url: str = ""
+
+
+class AcademicToolsConfig(Base):
+    """Academic search tool configuration."""
+
+    default_max_results: int = 5
+    user_agent: str = "nanobot-academic/0.1"
+    contact_email: str = ""
+    arxiv: AcademicSourceConfig = Field(default_factory=AcademicSourceConfig)
+    semantic_scholar: AcademicSourceConfig = Field(default_factory=AcademicSourceConfig)
+    openalex: AcademicSourceConfig = Field(default_factory=AcademicSourceConfig)
+    crossref: AcademicSourceConfig = Field(default_factory=AcademicSourceConfig)
+
+
 class ExecToolConfig(Base):
     """Shell exec tool configuration."""
 
@@ -325,6 +345,7 @@ class ToolsConfig(Base):
     """Tools configuration."""
 
     web: WebToolsConfig = Field(default_factory=WebToolsConfig)
+    academic: AcademicToolsConfig = Field(default_factory=AcademicToolsConfig)
     exec: ExecToolConfig = Field(default_factory=ExecToolConfig)
     restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)

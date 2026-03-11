@@ -9,12 +9,13 @@ from typing import Any
 from loguru import logger
 
 from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
+from nanobot.agent.tools.academic import AcademicSearchTool
 from nanobot.agent.tools.registry import ToolRegistry
 from nanobot.agent.tools.shell import ExecTool
 from nanobot.agent.tools.web import WebFetchTool, WebSearchTool
 from nanobot.bus.events import InboundMessage
 from nanobot.bus.queue import MessageBus
-from nanobot.config.schema import ExecToolConfig
+from nanobot.config.schema import AcademicToolsConfig, ExecToolConfig
 from nanobot.providers.base import LLMProvider
 
 
@@ -32,6 +33,7 @@ class SubagentManager:
         reasoning_effort: str | None = None,
         brave_api_key: str | None = None,
         web_proxy: str | None = None,
+        academic_config: "AcademicToolsConfig | None" = None,
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = False,
     ):
@@ -45,6 +47,7 @@ class SubagentManager:
         self.reasoning_effort = reasoning_effort
         self.brave_api_key = brave_api_key
         self.web_proxy = web_proxy
+        self.academic_config = academic_config
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
         self._running_tasks: dict[str, asyncio.Task[None]] = {}
@@ -108,6 +111,7 @@ class SubagentManager:
             ))
             tools.register(WebSearchTool(api_key=self.brave_api_key, proxy=self.web_proxy))
             tools.register(WebFetchTool(proxy=self.web_proxy))
+            tools.register(AcademicSearchTool(config=self.academic_config, proxy=self.web_proxy))
             
             system_prompt = self._build_subagent_prompt()
             messages: list[dict[str, Any]] = [
